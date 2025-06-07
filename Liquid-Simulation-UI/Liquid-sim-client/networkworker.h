@@ -4,6 +4,10 @@
 #include <QObject>
 #include <QTcpSocket>
 #include <QImage>
+#include <QElapsedTimer>
+#include <QQueue>
+#include <QTimer>
+
 
 class NetworkWorker : public QObject
 {
@@ -20,12 +24,14 @@ signals:
     void connected();
     void disconnected();
     void errorOccurred(QString error);
+    void rawFrameDataReceived(QByteArray rawData, int frameCount, int width, int height);
 
 private slots:
     void onReadyRead();
     void onConnected();
     void onDisconnected();
     void onError(QAbstractSocket::SocketError socketError);
+
 
 private:
     QTcpSocket *socket;
@@ -34,6 +40,12 @@ private:
     QElapsedTimer frameTimer;      // ✅ Already there
     QImage pendingFrame;           // ✅ Add this
     bool framePending = false;
+    int frameWidth = -1;
+    int frameHeight = -1;
+    int frameCount = 0;
+    QQueue<QImage> pendingFrames;
+    QTimer *frameDispatchTimer;
+
 };
 
 #endif // NETWORKWORKER_H
